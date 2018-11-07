@@ -48,28 +48,6 @@ Device (URTM)
             // the kernel debugger is enabled to prevent another client
             // from muxing the pins away.
             // MsftFunctionConfig(Exclusive, PullDown, BCM_ALT5, "\\_SB.GPI0", 0, ResourceConsumer, ) {14, 15}
-        })
-        Return(RBUF)
-    }
-}
-
-//
-// Multifunction serial bus device to support Bluetooth function
-//
-
-Device(BTH0)
-{
-    Name (_HID, "BCM2EA6")
-    Name (_CID, "BCM2EA6")
-    Method (_STA)
-    {
-        Return(0xf)
-    }
-    Method (_CRS, 0x0, NotSerialized) {
-        Name (RBUF, ResourceTemplate () {
-            //
-            // BT UART: UART0 (PL011)
-            //
             UARTSerialBus(
                 115200,        // InitialBaudRate: in BPS
                 ,              // BitsPerByte: default to 8 bits
@@ -102,9 +80,64 @@ Device(BTH0)
                 UAR0,          // DescriptorName: creates name
                                //   for offset of resource descriptor
                 )              // Vendor data
+        })
+        Return(RBUF)
+    }
+}
+
+//
+// Multifunction serial bus device to support Bluetooth function
+//
+
+Device(BTH0)
+{
+    Name (_HID, "BCM2EA6")
+    Name (_CID, "BCM2EA6")
+    Method (_STA)
+    {
+        Return(0xf)
+    }
+    Method (_CRS, 0x0, NotSerialized) {
+        Name (RBUF, ResourceTemplate () {
+            //
+            // BT UART: UART1 (MiniUART)
+            //
+            UARTSerialBus(
+                115200,        // InitialBaudRate: in BPS
+                ,              // BitsPerByte: default to 8 bits
+                ,              // StopBits: Defaults to one bit
+                0x00,          // LinesInUse: 8 1-bit flags to
+                               //   declare enabled control lines.
+                               //   Raspberry Pi does not exposed
+                               //   HW control signals -> not supported.
+                               //   Optional bits:
+                               //   - Bit 7 (0x80) Request To Send (RTS)
+                               //   - Bit 6 (0x40) Clear To Send (CTS)
+                               //   - Bit 5 (0x20) Data Terminal Ready (DTR)
+                               //   - Bit 4 (0x10) Data Set Ready (DSR)
+                               //   - Bit 3 (0x08) Ring Indicator (RI)
+                               //   - Bit 2 (0x04) Data Carrier Detect (DTD)
+                               //   - Bit 1 (0x02) Reserved. Must be 0.
+                               //   - Bit 0 (0x01) Reserved. Must be 0.
+                ,              // IsBigEndian:
+                               //   default to LittleEndian.
+                ,              // Parity: Defaults to no parity
+                ,              // FlowControl: Defaults to
+                               //   no flow control.
+                16,            // ReceiveBufferSize
+                16,            // TransmitBufferSize
+                "\\_SB.URTM",  // ResourceSource:
+                               //   UART bus controller name
+                ,              // ResourceSourceIndex: assumed to be 0
+                ,              // ResourceUsage: assumed to be
+                               //   ResourceConsumer
+                UARM,          // DescriptorName: creates name
+                               //   for offset of resource descriptor
+                )              // Vendor data
 
                //
                // RPIQ connection for BT_ON/OFF
+               // this apparently does nothing...
                //
                GpioIO(Shared, PullUp, 0, 0, IoRestrictionNone, "\\_SB.RPIQ", 0, ResourceConsumer, , ) { 128 }
         })
